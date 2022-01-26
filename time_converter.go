@@ -26,31 +26,80 @@ func ChangeFormatToReadable(sapTime string) string {
 	return t.Format(time.RFC3339)
 }
 
-func ChangeTimeFormatToReadableForStruct(str interface{}) {
-	rv := reflect.ValueOf(str)
-	pickString(rv)
+func ChangeFormatToSAPFormat(readableTime string) string {
+	if readableTime == "" {
+		return ""
+	}
+	t, err := time.Parse(time.RFC3339, readableTime)
+	if err != nil {
+		return ""
+	}
+	return ConvertToSAPTimeFormat(t)
 }
 
-func pickString(rv reflect.Value) {
+func ChangeTimeFormatToReadableForStruct(str interface{}) {
+	rv := reflect.ValueOf(str)
+	pickStringToReadable(rv)
+}
+
+func ChangeTimeFormatToSAPFormatStruct(str interface{}) {
+	rv := reflect.ValueOf(str)
+	pickStringToSAPFormat(rv)
+}
+
+func pickStringToSAPFormat(rv reflect.Value) {
 	switch rv.Kind() {
 	case reflect.Ptr, reflect.Interface:
-		pickString(rv.Elem())
+		pickStringToSAPFormat(rv.Elem())
 	case reflect.Slice:
 		for i := 0; i < rv.Len(); i++ {
-			pickString(rv.Index(i))
+			pickStringToSAPFormat(rv.Index(i))
 		}
 	case reflect.Struct:
 		for i := 0; i < rv.NumField(); i++ {
-			pickString(rv.Field(i))
+			pickStringToSAPFormat(rv.Field(i))
 		}
 
 	}
 	if rv.Kind() == reflect.String {
-		changeValue(rv)
+		changeValueToSAPFormat(rv)
 	}
 }
 
-func changeValue(rv reflect.Value) {
+func changeValueToSAPFormat(rv reflect.Value) {
+	if rv.Kind() != reflect.String {
+		return
+	}
+	if !rv.CanSet() {
+		return
+	}
+
+	strValue := rv.String()
+	if isReadableTimeFormat(strValue) {
+		rv.SetString(ChangeFormatToSAPFormat(strValue))
+	}
+}
+
+func pickStringToReadable(rv reflect.Value) {
+	switch rv.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		pickStringToReadable(rv.Elem())
+	case reflect.Slice:
+		for i := 0; i < rv.Len(); i++ {
+			pickStringToReadable(rv.Index(i))
+		}
+	case reflect.Struct:
+		for i := 0; i < rv.NumField(); i++ {
+			pickStringToReadable(rv.Field(i))
+		}
+
+	}
+	if rv.Kind() == reflect.String {
+		changeValueToReadable(rv)
+	}
+}
+
+func changeValueToReadable(rv reflect.Value) {
 	if rv.Kind() != reflect.String {
 		return
 	}

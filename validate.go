@@ -2,12 +2,20 @@ package sap_api_time_value_converter
 
 import (
 	"strings"
+	"time"
 
 	"golang.org/x/xerrors"
 )
 
 func isSAPDateFormat(s string) bool {
 	if err := validateSAPDateFormat(s); err != nil {
+		return false
+	}
+	return true
+}
+
+func isReadableTimeFormat(s string) bool {
+	if _, err := time.Parse(time.RFC3339, s); err != nil {
 		return false
 	}
 	return true
