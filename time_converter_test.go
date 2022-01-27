@@ -30,6 +30,26 @@ func TestConvertToTime(t *testing.T) {
 			}
 		}(),
 		func() testStr {
+			now := time.Now()
+			return testStr{
+				name: "OK now time",
+				args: args{
+					sapTime: fmt.Sprintf(`/Date(%d)/`, now.UnixMilli()),
+				},
+				want: now,
+			}
+		}(),
+		func() testStr {
+			now := time.Now()
+			return testStr{
+				name: "OK now time",
+				args: args{
+					sapTime: fmt.Sprintf(`/Date(%d+0000)/`, now.UnixMilli()),
+				},
+				want: now,
+			}
+		}(),
+		func() testStr {
 			return testStr{
 				name: "OK now time",
 				args: args{

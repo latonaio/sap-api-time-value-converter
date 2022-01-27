@@ -128,9 +128,11 @@ func ConvertToTimeFormat(sapTime string) time.Time {
 	return time.UnixMilli(milli)
 }
 
+// getUnixmilli unixミリ秒を返す
 func getUnixmilli(sapTime string) (int64, error) {
 	fixedString := strings.Join(strings.Split(sapTime, `\`), "")
 	num := fixedString[len(`/Date(`) : len(fixedString)-len(`)/`)]
+	num = strings.Split(num, "+")[0]
 	milli, err := strconv.ParseInt(num, 10, 64)
 	if err != nil {
 		return -1, xerrors.Errorf("given word '%s' can not be converted to number: %w", sapTime, err)
