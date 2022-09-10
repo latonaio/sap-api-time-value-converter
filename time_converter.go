@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"golang.org/x/xerrors"
 )
 
 func ConvertToSAPTimeFormat(t time.Time) string {
@@ -23,6 +21,11 @@ func ChangeFormatToReadable(sapTime string) string {
 	if t.Year() <= 1 {
 		return ""
 	}
+
+	if t.UTC().Hour() == 0 && t.UTC().Minute() == 0 && t.UTC().Second() == 0 && t.UTC().Nanosecond() == 0 {
+		return t.Format("2006-01-02")
+	}
+
 	return t.Format(time.RFC3339)
 }
 
@@ -135,7 +138,8 @@ func getUnixmilli(sapTime string) (int64, error) {
 	num = strings.Split(num, "+")[0]
 	milli, err := strconv.ParseInt(num, 10, 64)
 	if err != nil {
-		return -1, xerrors.Errorf("given word '%s' can not be converted to number: %w", sapTime, err)
+		return -1, fmt.Errorf("given word '%s' can not be converted to number: %w", sapTime, err)
 	}
 	return milli, nil
 }
+
