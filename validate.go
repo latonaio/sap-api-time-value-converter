@@ -1,10 +1,10 @@
 package sap_api_time_value_converter
 
 import (
+	"fmt"
+	"regexp"
 	"strings"
 	"time"
-
-	"golang.org/x/xerrors"
 )
 
 func isSAPDateFormat(s string) bool {
@@ -12,6 +12,10 @@ func isSAPDateFormat(s string) bool {
 		return false
 	}
 	return true
+}
+func isSAPDurationFormat(sapTime string) bool {
+	ok, _ := regexp.MatchString(`PT[0-2]\dH[0-6]\dM[0-6]\dS`, sapTime)
+	return ok
 }
 
 func isReadableTimeFormat(s string) bool {
@@ -35,7 +39,7 @@ func validateSAPDateFormat(sapTime string) error {
 
 func validatePrefix(sapTime string) error {
 	if !(strings.HasPrefix(sapTime, `\/Date(`) || strings.HasPrefix(sapTime, `/Date(`)) {
-		return xerrors.Errorf(
+		return fmt.Errorf(
 			"%s is not type of SAP timestamp", sapTime,
 		)
 	}
@@ -44,7 +48,7 @@ func validatePrefix(sapTime string) error {
 
 func validateSuffix(sapTime string) error {
 	if !(strings.HasSuffix(sapTime, `)\/`) || strings.HasSuffix(sapTime, `)/`)) {
-		return xerrors.Errorf(
+		return fmt.Errorf(
 			"%s is not type of SAP timestamp", sapTime,
 		)
 	}

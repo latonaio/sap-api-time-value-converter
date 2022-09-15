@@ -13,7 +13,7 @@ func ConvertToSAPTimeFormat(t time.Time) string {
 	return fmt.Sprintf(`/Date(%d)/`, t.UnixMilli())
 }
 
-func ChangeFormatToReadable(sapTime string) string {
+func ChangeFormatToReadableDateTime(sapTime string) string {
 	if sapTime == "" {
 		return ""
 	}
@@ -27,6 +27,19 @@ func ChangeFormatToReadable(sapTime string) string {
 	}
 
 	return t.Format(time.RFC3339)
+}
+
+func ChangeFormatToReadableTime(sapTime string) string {
+	if sapTime == "" {
+		return ""
+	}
+
+	t, err := time.Parse("PT15H04M05S", sapTime)
+	if err != nil {
+		return sapTime
+	}
+
+	return t.Format("15:04:05")
 }
 
 func ChangeFormatToSAPFormat(readableTime string) string {
@@ -112,8 +125,13 @@ func changeValueToReadable(rv reflect.Value) {
 
 	strValue := rv.String()
 	if isSAPDateFormat(strValue) {
-		rv.SetString(ChangeFormatToReadable(strValue))
+		rv.SetString(ChangeFormatToReadableDateTime(strValue))
 	}
+
+	if isSAPDurationFormat(strValue) {
+		rv.SetString(ChangeFormatToReadableTime(strValue))
+	}
+
 }
 
 func ConvertToTimeFormat(sapTime string) time.Time {
