@@ -22,11 +22,14 @@ func ChangeFormatToReadableDateTime(sapTime string) string {
 	}
 	t := ConvertToTimeFormat(sapTime)
 	if t.Year() <= 1 {
-		return ""
+		return t.Format("15:04:05")
 	}
 
 	if t.UTC().Hour() == 0 && t.UTC().Minute() == 0 && t.UTC().Second() == 0 && t.UTC().Nanosecond() == 0 {
 		return t.Format("2006-01-02")
+	}
+	if t.Year() >= 10000 {
+		return "9999-12-31"
 	}
 
 	return t.Format(time.RFC3339)
@@ -43,6 +46,28 @@ func ChangeFormatToReadableTime(sapTime string) string {
 	}
 
 	return t.Format("15:04:05")
+}
+
+func ChangeFormatToReadableTimeFromConsecutiveFormat(sapTime string) string {
+	if sapTime == "" {
+		return ""
+	}
+
+	t, err := time.Parse("20060102150405", sapTime)
+	if err != nil {
+		return sapTime
+	}
+	if t.Year() <= 1 {
+		return t.Format("15:04:05")
+	}
+	if t.UTC().Hour() == 0 && t.UTC().Minute() == 0 && t.UTC().Second() == 0 && t.UTC().Nanosecond() == 0 {
+		return t.Format("2006-01-02")
+	}
+	if t.Year() >= 10000 {
+		return "9999-12-31T23:59:59+00:00"
+	}
+
+	return t.Format(time.RFC3339)
 }
 
 func ChangeFormatToSAPFormat(readableTime string) string {
@@ -148,10 +173,16 @@ func changeValueToReadable(rv reflect.Value) {
 	strValue := rv.String()
 	if isSAPDateFormat(strValue) {
 		rv.SetString(ChangeFormatToReadableDateTime(strValue))
+		return
 	}
 
 	if isSAPDurationFormat(strValue) {
 		rv.SetString(ChangeFormatToReadableTime(strValue))
+		return
+	}
+	if isSAPDateTimeFormat(strValue) {
+		rv.SetString(ChangeFormatToReadableTimeFromConsecutiveFormat(strValue))
+		return
 	}
 
 }

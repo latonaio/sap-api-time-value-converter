@@ -17,6 +17,10 @@ func isSAPDurationFormat(sapTime string) bool {
 	ok, _ := regexp.MatchString(`PT[0-2]\dH[0-6]\dM[0-6]\dS`, sapTime)
 	return ok
 }
+func isSAPDateTimeFormat(sapTime string) bool {
+	_, err := time.Parse("20060102150405", sapTime)
+	return err == nil
+}
 
 func isReadableTimeFormat(s string) bool {
 	if _, err := time.Parse(time.RFC3339, s); err != nil {
