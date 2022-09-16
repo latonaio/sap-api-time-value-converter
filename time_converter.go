@@ -12,6 +12,9 @@ import (
 func ConvertToSAPTimeFormat(t time.Time) string {
 	return fmt.Sprintf(`/Date(%d)/`, t.UnixMilli())
 }
+func ConvertToSAPTimeDurationFormat(t time.Time) string {
+	return fmt.Sprintf(`PT%02dH%02dM%02dS`, t.UTC().Hour(), t.UTC().Minute(), t.UTC().Second())
+}
 
 func ChangeFormatToReadableDateTime(sapTime string) string {
 	if sapTime == "" {
@@ -47,10 +50,21 @@ func ChangeFormatToSAPFormat(readableTime string) string {
 		return ""
 	}
 	t, err := time.Parse(time.RFC3339, readableTime)
-	if err != nil {
-		return ""
+	if err == nil {
+		return ConvertToSAPTimeFormat(t)
 	}
-	return ConvertToSAPTimeFormat(t)
+
+	t, err = time.Parse("2006-01-02", readableTime)
+	if err == nil {
+		return ConvertToSAPTimeFormat(t)
+	}
+
+	t, err = time.Parse("15:04:05", readableTime)
+	if err == nil {
+		return ConvertToSAPTimeDurationFormat(t)
+	}
+
+	return readableTime
 }
 
 func ChangeTimeFormatToReadableForStruct(str interface{}) {
@@ -75,8 +89,12 @@ func pickStringToSAPFormat(rv reflect.Value) {
 		for i := 0; i < rv.NumField(); i++ {
 			pickStringToSAPFormat(rv.Field(i))
 		}
-
+	case reflect.Map:
+		for _, e := range rv.MapKeys() {
+			pickStringToSAPFormat(rv.MapIndex(e))
+		}
 	}
+
 	if rv.Kind() == reflect.String {
 		changeValueToSAPFormat(rv)
 	}
@@ -94,6 +112,10 @@ func changeValueToSAPFormat(rv reflect.Value) {
 	if isReadableTimeFormat(strValue) {
 		rv.SetString(ChangeFormatToSAPFormat(strValue))
 	}
+	if isReadableDateFormat(strValue) {
+		rv.SetString(ChangeFormatToSAPFormat(strValue))
+	}
+
 }
 
 func pickStringToReadable(rv reflect.Value) {
@@ -160,4 +182,3 @@ func getUnixmilli(sapTime string) (int64, error) {
 	}
 	return milli, nil
 }
-

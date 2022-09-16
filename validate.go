@@ -25,6 +25,13 @@ func isReadableTimeFormat(s string) bool {
 	return true
 }
 
+func isReadableDateFormat(s string) bool {
+	if _, err := time.Parse("2006-01-02", s); err != nil {
+		return false
+	}
+	return true
+}
+
 func validateSAPDateFormat(sapTime string) error {
 	err := validatePrefix(sapTime)
 	if err != nil {
